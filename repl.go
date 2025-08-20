@@ -7,45 +7,7 @@ import (
 	"strings"
 )
 
-type cliCommand struct {
-	name        string
-	description string
-	callback    func() error
-}
-
-var commands map[string]cliCommand
-
-func commandExit() error {
-	fmt.Println("Closing the Pokedex... Goodbye!")
-	os.Exit(0)
-	return nil
-}
-
-func commandHelp() error {
-	fmt.Println("Welcome to the Pokedex!")
-	fmt.Println("Usage:\n")
-
-	for _, command := range commands {
-		fmt.Printf("%s: %s\n", command.name, command.description)
-	}
-
-	return nil
-}
-
-func init() {
-	commands = map[string]cliCommand{
-		"exit": {
-			name:        "exit",
-			description: "Exit the Pokedex",
-			callback:    commandExit,
-		},
-		"help": {
-			name:        "help",
-			description: "Display available commands",
-			callback:    commandHelp,
-		},
-	}
-}
+// TODO: Make API GET requests to the PokeAPI
 
 func startRepl() {
 	scanner := bufio.NewScanner(os.Stdin)
@@ -59,16 +21,18 @@ func startRepl() {
 		}
 
 		cleanedInput := cleanInput(line)
-		command := cleanedInput[0]
+		commandName := cleanedInput[0]
 
-		cmd, exists := commands[command]
+		command, exists := getCommands()[commandName]
 		if exists {
-			err := cmd.callback()
+			err := command.callback()
 			if err != nil {
-				fmt.Printf("Command '%s' failed: %v\n", command, err)
+				fmt.Println(err)
 			}
+			continue
 		} else {
 			fmt.Println("Unknown command")
+			continue
 		}
 	}
 }
@@ -76,4 +40,36 @@ func startRepl() {
 func cleanInput(text string) []string {
 	lowercaseString := strings.ToLower(text)
 	return strings.Fields(lowercaseString)
+}
+
+type cliCommand struct {
+	name        string
+	description string
+	callback    func() error
+	config      *config
+}
+
+type config struct {
+	NextURL     string
+	previousURL string
+}
+
+func getCommands() map[string]cliCommand {
+	return map[string]cliCommand{
+		"exit": {
+			name:        "exit",
+			description: "Exit the Pokedex",
+			callback:    commandExit,
+		},
+		"help": {
+			name:        "help",
+			description: "Display available commands",
+			callback:    commandHelp,
+		},
+		"map": {
+			name:        "map",
+			description: "Displays the names of 20 location areas in the Pokemon world",
+			callback:    commandMap,
+		},
+	}
 }
