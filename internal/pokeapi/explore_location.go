@@ -6,10 +6,10 @@ import (
 	"net/http"
 )
 
-func (c *Client) ListLocations(pageURL *string) (RespShallowLocations, error) {
+func (c *Client) ExploreLocation(area string) (RespLocationInfo, error) {
 	url := baseURL + "/location-area"
-	if pageURL != nil {
-		url = *pageURL
+	if area != "" {
+		url = url + "/" + area
 	}
 
 	dat, exists := c.cache.Get(url)
@@ -18,26 +18,26 @@ func (c *Client) ListLocations(pageURL *string) (RespShallowLocations, error) {
 	if !exists {
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
-			return RespShallowLocations{}, err
+			return RespLocationInfo{}, err
 		}
 
 		resp, err := c.httpClient.Do(req)
 		if err != nil {
-			return RespShallowLocations{}, err
+			return RespLocationInfo{}, err
 		}
 		defer resp.Body.Close()
 
 		dat, err = io.ReadAll(resp.Body)
 		if err != nil {
-			return RespShallowLocations{}, err
+			return RespLocationInfo{}, err
 		}
 	}
 
-	locationsResp := RespShallowLocations{}
-	err := json.Unmarshal(dat, &locationsResp)
+	locationInfo := RespLocationInfo{}
+	err := json.Unmarshal(dat, &locationInfo)
 	if err != nil {
-		return RespShallowLocations{}, err
+		return RespLocationInfo{}, err
 	}
 
-	return locationsResp, nil
+	return locationInfo, nil
 }
