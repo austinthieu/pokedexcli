@@ -7,10 +7,7 @@ import (
 )
 
 func (c *Client) ExploreLocation(area string) (RespLocationInfo, error) {
-	url := baseURL + "/location-area"
-	if area != "" {
-		url = url + "/" + area
-	}
+	url := baseURL + "/location-area/" + area
 
 	dat, exists := c.cache.Get(url)
 
@@ -38,6 +35,8 @@ func (c *Client) ExploreLocation(area string) (RespLocationInfo, error) {
 	if err != nil {
 		return RespLocationInfo{}, err
 	}
+
+	c.cache.Add(url, dat)
 
 	return locationInfo, nil
 }
